@@ -8,9 +8,74 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
+    <div class="intro" id="intro" aria-hidden="true">
+      <video
+        class="intro__video"
+        id="introVideo"
+        muted
+        playsinline
+        preload="auto"
+      >
+        <source
+          src="../c0bbcdb172684b05956feab53f098acf.webm"
+          type="video/webm"
+        />
+      </video>
+      <button class="intro__skip" id="introSkip" type="button">Skip</button>
+    </div>
     <main class="wrap">
       <h1>Soarecele Intoxicat</h1>
       <p class="soon">În curând.</p>
     </main>
+    <script>
+      (() => {
+        const intro = document.getElementById("intro");
+        const video = document.getElementById("introVideo");
+        const skip = document.getElementById("introSkip");
+
+        if (!intro || !video || !skip) return;
+
+        const endIntro = () => {
+          if (intro.classList.contains("intro--hidden")) return;
+          intro.classList.add("intro--hidden");
+          document.documentElement.classList.remove("no-scroll");
+          window.setTimeout(() => intro.remove(), 450);
+        };
+
+        const safePlay = async () => {
+          try {
+            video.currentTime = 0;
+            await video.play();
+          } catch {
+            // Autoplay can be blocked on some devices (e.g. iOS) until user interaction.
+            skip.textContent = "Tap to start";
+            intro.classList.add("intro--needs-tap");
+          }
+        };
+
+        document.documentElement.classList.add("no-scroll");
+        video.addEventListener("ended", endIntro, { once: true });
+        skip.addEventListener(
+          "click",
+          async () => {
+            if (intro.classList.contains("intro--needs-tap")) {
+              intro.classList.remove("intro--needs-tap");
+              skip.textContent = "Skip";
+              await safePlay();
+              return;
+            }
+            endIntro();
+          },
+          { passive: true }
+        );
+
+        // Start playback as early as possible.
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", safePlay, { once: true });
+        } else {
+          safePlay();
+        }
+      })();
+    </script>
   </body>
 </html>
